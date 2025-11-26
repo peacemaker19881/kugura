@@ -1,0 +1,15 @@
+<h2>Add New Product</h2>
+
+<form action="/addproduct" method="POST" enctype="multipart/form-data">
+    <input type="text" name="productid" placeholder="Product ID" required>
+    <input type="text" name="seller_id" placeholder="Seller ID" required>
+    <input type="text" name="title" placeholder="Title" required>
+    <textarea name="description" placeholder="Description" required></textarea>
+    <input type="number" name="price" placeholder="Price" required>
+    <input type="number" name="quantity" placeholder="Quantity" required>
+
+    <label>Select Product Image:</label>
+    <input type="file" name="image" required>
+
+    <button type="submit">Save Product</button>
+</form>
