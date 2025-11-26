@@ -1,6 +1,7 @@
 const express = require('express');
 const mysql = require('mysql');
 const multer = require('multer');
+const session = require('express-session');
 const path = require('path');
 const dotenv = require('dotenv');
 
@@ -16,6 +17,51 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+app.use(session({
+    secret: "mysecret123",
+    resave: false,
+    saveUninitialized: true,
+}));
+
+function isLoggedIn(req, res, next) {
+    if (req.session.user) {
+        next();
+    } else {
+        res.redirect('/login');
+    }
+}
+
+app.get('/login', (req, res) => {
+    res.render('login');
+});
+
+app.post('/login', (req, res) => {
+    const { username, password } = req.body;
+
+    const sql = "SELECT * FROM users WHERE username = ? AND password = ?";
+    db.query(sql, [username, password], (err, results) => {
+        if (err) return res.status(500).send(err);
+
+        if (results.length > 0) {
+            req.session.user = results[0];  // save user session
+            res.redirect('/addproduct');
+        } else {
+            res.render('login', { error: "Invalid username or password" });
+        }
+    });
+});
+
+app.get('/logout', (req, res) => {
+    req.session.destroy();
+    res.redirect('/');
+});
+
+
+app.get('/addproduct', isLoggedIn, (req, res) => {
+    res.render('addproduct');
+});
+
 
 // IMAGE UPLOAD SETTINGS
 const storage = multer.diskStorage({
@@ -44,7 +90,7 @@ db.connect(err => {
 
 // RENDER HOMEPAGE
 app.get('/', (req, res) => {
-    res.render('index');
+    res.render('index', { user: req.session.user });
 });
 
 // DISPLAY ALL PRODUCTS
@@ -62,7 +108,7 @@ app.get('/addproduct', (req, res) => {
 });
 
 // ADD PRODUCT WITH IMAGE UPLOAD
-app.post('/addproduct', upload.single('image'), (req, res) => {
+app.post('/addproduct', isLoggedIn, upload.single('image'), (req, res) => {
 
     const { productid, seller_id, title, description, price, quantity } = req.body;
     const image_url = req.file ? '/uploads/' + req.file.filename : null;

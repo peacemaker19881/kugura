@@ -12,6 +12,7 @@
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "express-hbs": "^2.5.0",
+    "express-session": "^1.18.2",
     "expresss": "^0.0.0",
     "hbs": "^4.2.0",
     "multer": "^2.0.2",
