@@ -96,3 +96,31 @@ body {
     padding: 15px;
     box-shadow: 0px 0px 5px #aaa;
 }
+.site-footer {
+    background-color: #222;
+    color: #fff;
+    text-align: center;
+    padding: 15px 0;
+    position: relative;  /* or fixed if you want always at bottom */
+    width: 100%;
+    margin-top: 30px;
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
+}
+
+.site-footer p {
+    margin: 0;
+    font-size: 14px;
+}
+
+html, body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    flex: 1;
+}
