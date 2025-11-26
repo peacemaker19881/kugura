@@ -1,0 +1,22 @@
+{
+  "name": "kugura",
+  "version": "1.0.0",
+  "description": "Valens 's project of selling products online",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon app.js"
+  },
+  "author": "Valens",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-hbs": "^2.5.0",
+    "expresss": "^0.0.0",
+    "multer": "^2.0.2",
+    "mysql": "^2.18.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}
