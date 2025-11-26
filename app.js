@@ -2,6 +2,7 @@ const express = require('express');
 const mysql = require('mysql');
 const multer = require('multer');
 const session = require('express-session');
+const bcrypt = require("bcryptjs");
 const path = require('path');
 const dotenv = require('dotenv');
 
@@ -24,6 +25,13 @@ app.use(session({
     saveUninitialized: true,
 }));
 
+function isAdmin(req, res, next) {
+    if (req.session && req.session.user && req.session.user.role === "admin") {
+        return next();
+    }
+    return res.status(403).send("Access denied. Admins only.");
+}
+
 function isLoggedIn(req, res, next) {
     if (req.session.user) {
         next();
@@ -32,25 +40,123 @@ function isLoggedIn(req, res, next) {
     }
 }
 
-app.get('/login', (req, res) => {
-    res.render('login');
+exports.isLoggedIn = (req, res, next) => {
+    if (!req.session.user) return res.redirect("/login");
+    next();
+};
+
+exports.isAdmin = (req, res, next) => {
+    if (!req.session.user || req.session.user.role !== "admin") {
+        return res.status(403).send("Access denied");
+    }
+    next();
+};
+// Register users
+app.get("/register", (req, res) => {
+    res.render("register");
 });
 
-app.post('/login', (req, res) => {
-    const { username, password } = req.body;
+app.post("/register", async (req, res) => {
+    const { username, email, password } = req.body;
 
-    const sql = "SELECT * FROM users WHERE username = ? AND password = ?";
-    db.query(sql, [username, password], (err, results) => {
-        if (err) return res.status(500).send(err);
+    const hash = await bcrypt.hash(password, 10);
 
-        if (results.length > 0) {
-            req.session.user = results[0];  // save user session
-            res.redirect('/addproduct');
-        } else {
-            res.render('login', { error: "Invalid username or password" });
-        }
+    const sql = "INSERT INTO users(username,email,password,phone) VALUES(?,?,?,?)";
+    db.query(sql, [username, phone, email, hash], (err) => {
+        if (err) return res.send(err);
+        res.redirect("/login");
     });
 });
+
+//Login route for navigating to our system
+app.get("/login", (req, res) => {
+    res.render("login");
+});
+
+app.post("/login", (req, res) => {
+    const { email, password } = req.body;
+
+    db.query("SELECT * FROM users WHERE email=?", [email], async (err, rows) => {
+        if (err) return res.send(err);
+        if (rows.length === 0) return res.send("User not found");
+
+        const user = rows[0];
+        const match = await bcrypt.compare(password, user.password);
+
+        if (!match) return res.send("Incorrect password");
+
+        // store session
+        req.session.user = {
+            id: user.userid,
+            username: user.username,
+            role: user.role
+        };
+
+        res.redirect("/dashboard");
+    });
+});
+
+// Dashboard for admin 
+app.get("/dashboard", isLoggedIn, (req, res) => {
+    if (req.session.user.role === "admin") {
+        res.redirect("/admin");
+    } else {
+        res.redirect("/addproduct");
+    }
+});
+// admin route 
+
+app.get("/admin", isAdmin, (req, res) => {
+    const sql = "SELECT * FROM products";
+
+    db.query(sql, (err, products) => {
+        res.render("admin", { products });
+    });
+});
+
+//Approve product by admin 
+
+app.get("/approve/:id", isAdmin, (req, res) => {
+    db.query("UPDATE products SET status='approved' WHERE productid=?", 
+    [req.params.id], () => {
+        res.redirect("/admin");
+    });
+});
+
+// Edit Page
+
+app.get("/edit/:id", isAdmin, (req, res) => {
+    db.query("SELECT * FROM products WHERE productid=?", [req.params.id], (err, data) => {
+        res.render("edit-product", { products: data[0] });
+    });
+});
+
+// Update Route
+app.post("/edit/:id", isAdmin, (req, res) => {
+    const { productname, unit_price, quantity } = req.body;
+
+    db.query("UPDATE products SET productname=?, unit_price=?, quantity=? WHERE productid=?",
+        [productname, unit_price, quantity, req.params.id],
+        () => res.redirect("/admin")
+    );
+});
+
+// Delete Product
+
+app.get("/delete/:id", isAdmin, (req, res) => {
+    db.query("DELETE FROM product WHERE productid=?", [req.params.id], () => {
+        res.redirect("/admin");
+    });
+});
+
+// show only approved products 
+
+app.get("/", (req, res) => {
+    db.query("SELECT * FROM product WHERE status='approved'", (err, products) => {
+        res.render("home", { products });
+    });
+});
+
 
 app.get('/logout', (req, res) => {
     req.session.destroy();

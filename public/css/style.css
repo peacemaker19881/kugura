@@ -1,67 +1,98 @@
 body {
-    background: #f5f5f5;
-    font-family: Arial;
     margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
 }
 
-.header, .footer {
-    background: #0066cc;
-    color: white;
+.navbar {
+    background: #222;
     padding: 15px;
-    text-align: center;
+}
+
+.navbar a {
+    color: #fff;
+    margin-right: 15px;
+    text-decoration: none;
 }
 
 .container {
-    display: flex;
-    gap: 20px;
+    width: 85%;
+    margin: auto;
     padding: 20px;
 }
 
-.card {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    width: 50%;
-    box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+.page-title {
+    font-size: 28px;
+    margin-bottom: 20px;
+    text-align: center;
 }
 
-label {
-    display: block;
-    margin-bottom: 10px;
+.form-box {
+    background: #fff;
+    padding: 25px;
+    width: 450px;
+    margin: auto;
+    box-shadow: 0px 0px 5px #aaa;
+    border-radius: 6px;
 }
 
-input {
+.form-box input {
     width: 100%;
-    padding: 6px;
-    margin-top: 5px;
+    padding: 12px;
+    margin-bottom: 15px;
 }
 
-button {
-    padding: 10px;
-    margin-top: 10px;
-    background: #0066cc;
-    color: white;
+.btn {
+    width: 100%;
+    padding: 12px;
+    background: #444;
+    color: #fff;
     border: none;
     cursor: pointer;
 }
 
-table {
+.btn:hover { background: #333; }
+
+.table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 10px;
 }
 
-td, th {
-    padding: 8px;
-    border-bottom: 1px solid #ddd;
+.table th, .table td {
+    padding: 12px;
+    background: #fff;
+    border-bottom: 1px solid #ccc;
 }
 
-.action-btn {
+.badge {
     padding: 5px 10px;
-    margin-right: 5px;
-    cursor: pointer;
-    color: white;
+    border-radius: 4px;
+    color: #fff;
 }
 
-.edit-btn { background: green; }
-.delete-btn { background: red; }
+.badge.approved { background: green; }
+.badge.pending { background: red; }
+
+.btn-small {
+    padding: 7px 10px;
+    background: #444;
+    color: #fff;
+    text-decoration: none;
+    margin-right: 5px;
+    border-radius: 3px;
+}
+
+.btn-small.edit { background: #0077cc; }
+.btn-small.delete { background: #cc0000; }
+
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.product-card {
+    background: white;
+    padding: 15px;
+    box-shadow: 0px 0px 5px #aaa;
+}

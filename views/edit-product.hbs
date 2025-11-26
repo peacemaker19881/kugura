@@ -1,0 +1,17 @@
+{{!< layout}}
+
+<h2 class="page-title">Edit Product</h2>
+
+<form action="/edit/{{product.productid}}" method="POST" class="form-box">
+
+    <label>Product Name</label>
+    <input type="text" name="productname" value="{{product.productname}}" required>
+
+    <label>Unit Price</label>
+    <input type="number" name="unit_price" value="{{product.unit_price}}" required>
+
+    <label>Quantity</label>
+    <input type="number" name="quantity" value="{{product.quantity}}" required>
+
+    <button type="submit" class="btn">Update Product</button>
+</form>

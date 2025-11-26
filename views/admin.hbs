@@ -1,0 +1,44 @@
+{{!< layout}}
+
+<h2 class="page-title">Admin Dashboard</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Product</th>
+            <th>Price</th>
+            <th>Qty</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {{#each products}}
+        <tr>
+            <td>{{productid}}</td>
+            <td>{{productname}}</td>
+            <td>{{unit_price}}</td>
+            <td>{{quantity}}</td>
+
+            <td>
+                {{#if (eq status "approved")}}
+                    <span class="badge approved">Approved</span>
+                {{else}}
+                    <span class="badge pending">Pending</span>
+                {{/if}}
+            </td>
+
+            <td>
+                {{#if (eq status "pending")}}
+                    <a href="/approve/{{productid}}" class="btn-small">Approve</a>
+                {{/if}}
+
+                <a href="/edit/{{productid}}" class="btn-small edit">Edit</a>
+                <a href="/delete/{{productid}}" class="btn-small delete">Delete</a>
+            </td>
+        </tr>
+        {{/each}}
+    </tbody>
+</table>
