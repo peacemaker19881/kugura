@@ -5,6 +5,12 @@ const session = require('express-session');
 const bcrypt = require("bcryptjs");
 const path = require('path');
 const dotenv = require('dotenv');
+const hbs = require("hbs");
+
+hbs.registerHelper("eq", function (a, b) {
+    return a === b;
+});
+
 
 dotenv.config();
 const app = express();
@@ -26,7 +32,7 @@ app.use(session({
 }));
 
 function isAdmin(req, res, next) {
-    if (req.session && req.session.user && req.session.user.role === "admin") {
+    if (req.session && req.session.user && req.session.user.role == "admin") {
         return next();
     }
     return res.status(403).send("Access denied. Admins only.");
@@ -57,16 +63,29 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", async (req, res) => {
-    const { username, email, password } = req.body;
+    try {
+        const { username, email, phone, password, role } = req.body;
 
-    const hash = await bcrypt.hash(password, 10);
+        // 1. Check if role is valid
+        const allowedRoles = ["admin", "seller"];
+        if (!allowedRoles.includes(role)) {
+            return res.status(400).json({ message: "Invalid role selected" });
+        }
 
-    const sql = "INSERT INTO users(username,email,password,phone) VALUES(?,?,?,?)";
-    db.query(sql, [username, phone, email, hash], (err) => {
-        if (err) return res.send(err);
-        res.redirect("/login");
-    });
+        // 2. Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // 3. SQL insert including the role
+        const sql = "INSERT INTO users(username, email, phone, password, role) VALUES(?,?,?,?,?)";
+        db.query(sql, [username, email, phone, hashedPassword, role], (err) => {
+            if (err) return res.status(500).json({ error: err });
+            return res.status(201).json({ message: "User registered successfully" });
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
+
 
 //Login route for navigating to our system
 app.get("/login", (req, res) => {
@@ -74,27 +93,43 @@ app.get("/login", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
-    db.query("SELECT * FROM users WHERE email=?", [email], async (err, rows) => {
-        if (err) return res.send(err);
-        if (rows.length === 0) return res.send("User not found");
+    const sql = "SELECT * FROM users WHERE username = ?";
+    db.query(sql, [username,password], async (err, results) => {
+        if (err) return res.status(500).send("Database error");
 
-        const user = rows[0];
+        if (results.length === 0) {
+            return res.status(404).send("User not found");
+        }
+
+        const user = results[0];
+
         const match = await bcrypt.compare(password, user.password);
+        if (!match) {
+            return res.status(400).send("Incorrect password");
+        }
 
-        if (!match) return res.send("Incorrect password");
-
-        // store session
+        // ↓↓↓ SAVE USER INTO SESSION ↓↓↓
         req.session.user = {
-            id: user.userid,
+            id: user.id,
             username: user.username,
+            email: user.email,
             role: user.role
         };
 
-        res.redirect("/dashboard");
+        // ↓↓↓ ROLE BASED REDIRECTION ↓↓↓
+        if (user.role === "admin") {
+            return res.redirect("/admin");
+        }
+        if (user.role === "seller") {
+            return res.redirect("/seller");
+        }
+
+        return res.send("Logged in, but role not recognized.");
     });
 });
+
 
 // Dashboard for admin 
 app.get("/dashboard", isLoggedIn, (req, res) => {
@@ -144,7 +179,7 @@ app.post("/edit/:id", isAdmin, (req, res) => {
 // Delete Product
 
 app.get("/delete/:id", isAdmin, (req, res) => {
-    db.query("DELETE FROM product WHERE productid=?", [req.params.id], () => {
+    db.query("DELETE FROM products WHERE productid=?", [req.params.id], () => {
         res.redirect("/admin");
     });
 });
@@ -152,7 +187,7 @@ app.get("/delete/:id", isAdmin, (req, res) => {
 // show only approved products 
 
 app.get("/", (req, res) => {
-    db.query("SELECT * FROM product WHERE status='approved'", (err, products) => {
+    db.query("SELECT * FROM products WHERE status='approved'", (err, products) => {
         res.render("home", { products });
     });
 });

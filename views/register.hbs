@@ -1,16 +1,47 @@
-{{!< layout}}
+<form id="registerForm">
+    <h2>User Registration</h2>
 
-<h2 class="page-title">Create Account</h2>
-
-<form action="/register" method="POST" class="form-box">
     <label>Username</label>
-    <input type="text" name="username" required>
+    <input type="text" id="username" required />
 
     <label>Email</label>
-    <input type="email" name="email" required>
+    <input type="email" id="email" required />
+
+    <label>Phone</label>
+    <input type="text" id="phone" required />
 
     <label>Password</label>
-    <input type="password" name="password" required>
+    <input type="password" id="password" required />
 
-    <button type="submit" class="btn">Register</button>
+    <label>Select Role</label>
+    <select id="role" required>
+        <option value="">-- choose role --</option>
+        <option value="admin">Admin</option>
+        <option value="seller">Seller</option>
+    </select>
+
+    <button type="submit">Register</button>
 </form>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<script>
+document.getElementById("registerForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const data = {
+        username: document.getElementById("username").value,
+        email: document.getElementById("email").value,
+        phone: document.getElementById("phone").value,
+        password: document.getElementById("password").value,
+        role: document.getElementById("role").value
+    };
+
+    try {
+        const res = await axios.post("http://localhost:5000/register", data);
+        alert("Registration successful!");
+    } catch (error) {
+        alert("Error: " + error.response.data.message);
+    }
+});
+</script>
