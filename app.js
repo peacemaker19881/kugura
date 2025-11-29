@@ -19,6 +19,7 @@ const port = 5000;
 // SET HBS
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
+hbs.registerPartials(path.join(__dirname, "views/partials"));
 
 // STATIC FOLDER
 app.use(express.static(path.join(__dirname, 'public')));
@@ -67,7 +68,7 @@ app.post("/register", async (req, res) => {
         const { username, email, phone, password, role } = req.body;
 
         // 1. Check if role is valid
-        const allowedRoles = ["admin", "seller"];
+        const allowedRoles = ["admin", "seller", "customer"];
         if (!allowedRoles.includes(role)) {
             return res.status(400).json({ message: "Invalid role selected" });
         }
@@ -85,12 +86,38 @@ app.post("/register", async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-
+app.use((req, res, next) => {
+    res.locals.user = req.session.user || null;
+    next();
+});
 
 //Login route for navigating to our system
 app.get("/login", (req, res) => {
     res.render("login");
 });
+
+app.get("/profile", isLoggedIn, (req, res) => {
+    res.render("profile", { user: req.session.user });
+});
+
+// add profile on created account for each user 
+app.post("/profile", isLoggedIn, upload.single("profile_image"), (req, res) => {
+    if (!req.file) return res.send("Please upload an image");
+
+    const newImage = "/uploads/" + req.file.filename;
+
+    const sql = "UPDATE users SET profile_image=? WHERE id=?";
+    db.query(sql, [newImage, req.session.user.id], (err) => {
+        if (err) throw err;
+
+        // update session
+        req.session.user.profile_image = newImage;
+
+        res.redirect("/profile");
+    });
+});
+
+
 
 app.post("/login", (req, res) => {
     const { username, password } = req.body;
@@ -123,7 +150,10 @@ app.post("/login", (req, res) => {
             return res.redirect("/admin");
         }
         if (user.role === "seller") {
-            return res.redirect("/seller");
+            return res.redirect("/addproduct");
+        }
+         if (user.role === "customer") {
+            return res.redirect("/products");
         }
 
         return res.send("Logged in, but role not recognized.");

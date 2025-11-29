@@ -1,0 +1,21 @@
+{{> header}}
+
+<h2>Edit Profile</h2>
+
+<div style="margin-top:20px;">
+    <p><strong>Username:</strong> {{user.username}}</p>
+    <p><strong>Email:</strong> {{user.email}}</p>
+    <p><strong>Role:</strong> {{user.role}}</p>
+
+    {{#if user.profile_image}}
+        <img src="{{user.profile_image}}" width="120" height="120" style="border-radius:50%;" />
+    {{else}}
+        <p>No profile picture</p>
+    {{/if}}
+
+    <form action="/profile" method="POST" enctype="multipart/form-data" style="margin-top:20px;">
+        <label>Upload New Profile Image:</label><br>
+        <input type="file" name="profile_image" required>
+        <button type="submit">Update Picture</button>
+    </form>
+</div>
