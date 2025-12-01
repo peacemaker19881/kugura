@@ -1,0 +1,29 @@
+<h2>Waiting for Payment</h2>
+<p>Reference: {{referenceId}}</p>
+<p>Please confirm payment on your phone. This page will check status automatically.</p>
+
+<div id="status">Status: pending</div>
+
+<script>
+  const ref = "{{referenceId}}";
+
+  async function checkStatus(){
+    const res = await fetch(`/checkout/status/${ref}`);
+    const data = await res.json();
+    // You will need to interpret response.data.status (MTN returns nested objects)
+    // For simplicity, we check HTTP status code
+    if (data.status === 200) {
+      document.getElementById('status').innerText = 'Status: succeeded';
+      // optionally redirect to success page
+      window.location = '/checkout/success';
+    } else if (data.status === 202) {
+      document.getElementById('status').innerText = 'Status: pending';
+    } else {
+      // error or failed
+      document.getElementById('status').innerText = 'Status: ' + JSON.stringify(data.data || data);
+    }
+  }
+
+  setInterval(checkStatus, 5000); // poll every 5s
+  checkStatus();
+</script>

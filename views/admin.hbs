@@ -1,17 +1,25 @@
-{{> header}}
-{{!< layout}}
 
 <h2 class="page-title">Admin Dashboard</h2>
+
+{{#if success}}
+  <div class="alert alert-success">{{success}}</div>
+{{/if}}
+{{#if error}}
+  <div class="alert alert-danger">{{error}}</div>
+{{/if}}
 
 <table class="table">
     <thead>
         <tr>
-            <th>ID</th>
-            <th>Product</th>
+            <th>productid</th>
+            <th>Seller ID</th>
+            <th>Title</th>
+            <th>Description</th>
             <th>Price</th>
-            <th>Qty</th>
+            <th>Quantity</th>
+            <th>Image</th>
             <th>Status</th>
-            <th>Actions</th>
+            <th>Action</th>
         </tr>
     </thead>
 
@@ -19,25 +27,34 @@
         {{#each products}}
         <tr>
             <td>{{productid}}</td>
-            <td>{{productname}}</td>
-            <td>{{unit_price}}</td>
+            <td>{{seller_id}}</td>
+            <td>{{title}}</td>
+            <td>{{description}}</td>
+            <td>{{price}}</td>
             <td>{{quantity}}</td>
+            <td>
+                {{#if image_url}}
+                  <img src="{{image_url}}" style="width:80px;height:80px;object-fit:cover;">
+                {{else}}
+                  N/A
+                {{/if}}
+            </td>
 
             <td>
                 {{#if (eq status "approved")}}
                     <span class="badge approved">Approved</span>
                 {{else}}
-                    <span class="badge pending">Pending</span>
+                    <!-- make this a link to approve -->
+                    <a href="/admin/approve/{{productid}}"
+                       onclick="return confirm('Approve this product?');"
+                       class="badge pending">Pending - Click to Approve</a>
                 {{/if}}
             </td>
 
             <td>
-                {{#if (eq status "pending")}}
-                    <a href="/approve/{{productid}}" class="btn-small">Approve</a>
-                {{/if}}
-
-                <a href="/edit/{{productid}}" class="btn-small edit">Edit</a>
-                <a href="/delete/{{productid}}" class="btn-small delete">Delete</a>
+                <a href="/admin/edit/{{productid}}" class="btn-small edit">Edit</a>
+                <a href="/admin/delete/{{productid}}" class="btn-small delete"
+                   onclick="return confirm('Delete this product permanently?');">Delete</a>
             </td>
         </tr>
         {{/each}}

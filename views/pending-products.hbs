@@ -1,0 +1,23 @@
+<h2>Products Waiting for Approval</h2>
+
+<table border="1">
+  <tr>
+    <th>Title</th>
+    <th>Description</th>
+    <th>Price</th>
+    <th>Seller</th>
+    <th>Action</th>
+  </tr>
+
+  {{#each products}}
+  <tr>
+    <td>{{title}}</td>
+    <td>{{description}}</td>
+    <td>{{price}}</td>
+    <td>{{seller_id}}</td>
+    <td>
+      <a href="/admin/approve/{{productid}}">Approve</a>
+    </td>
+  </tr>
+  {{/each}}
+</table>

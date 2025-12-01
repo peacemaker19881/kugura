@@ -1,0 +1,29 @@
+<h2>Your Cart</h2>
+
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Image</th>
+        <th>Title</th>
+        <th>Qty</th>
+        <th>Price</th>
+        <th>Total</th>
+        <th>Action</th>
+    </tr>
+
+    {{#each items}}
+    <tr>
+        <td><img src="{{image_url}}" width="80"></td>
+        <td>{{title}}</td>
+        <td>{{quantity}}</td>
+        <td>{{price}}</td>
+        <td>{{total}}</td>
+        <td>
+            <a href="/cart/remove/{{id}}">Remove</a>
+        </td>
+    </tr>
+    {{/each}}
+</table>
+
+<br>
+
+<a href="/checkout" class="btn">Proceed to Checkout</a>

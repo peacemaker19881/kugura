@@ -1,0 +1,25 @@
+<h2>{{product.title}}</h2>
+
+<div style="display:flex; gap:30px;">
+
+    <img src="{{product.image_url}}" style="width:350px; height:350px; object-fit:cover; border-radius:10px;">
+
+    <div>
+        <p><b>Description:</b> {{product.description}}</p>
+        <p><b>Price:</b> {{product.price}} RWF</p>
+        <p><b>Available Quantity:</b> {{product.quantity}}</p>
+
+        <a href="/buy/{{product.productid}}"
+           style="padding:10px 20px; background:green; color:white; border-radius:5px; display:inline-block; margin-top:20px;">
+            Buy Now
+        </a>
+    </div>
+
+</div>
+
+<form action="/cart/add/{{product.productid}}" method="POST">
+    <label>Quantity:</label>
+    <input type="number" name="quantity" value="1" min="1" required>
+
+    <button type="submit">Add to Cart</button>
+</form>

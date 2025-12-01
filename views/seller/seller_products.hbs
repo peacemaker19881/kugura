@@ -1,0 +1,22 @@
+{{#if success}}
+<div class="alert alert-success">
+    {{success}}
+</div>
+{{/if}}
+<h2>Your Products</h2>
+
+<table border="1">
+  <tr>
+    <th>Name</th>
+    <th>Price</th>
+    <th>Status</th>
+  </tr>
+
+  {{#each products}}
+  <tr>
+    <td>{{this.productname}}</td>
+    <td>{{this.price}}</td>
+    <td>{{this.status}}</td>
+  </tr>
+  {{/each}}
+</table>

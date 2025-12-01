@@ -9,6 +9,7 @@
   "author": "Valens",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
@@ -18,7 +19,8 @@
     "hbs": "^4.2.0",
     "multer": "^2.0.2",
     "mysql": "^2.18.1",
-    "open": "^11.0.0"
+    "open": "^11.0.0",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"

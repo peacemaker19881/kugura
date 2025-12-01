@@ -4,10 +4,11 @@
     {{#if user}}
         <!-- WHEN LOGGED IN -->
         <a href="/profile" style="color:white; margin-right:15px;">Edit Profile</a>
-        <a href="/logout" style="color:white;">Logout</a>
+        <a href="/logout" class="logout-btn">Logout ({{user.username}})</a>
     {{else}}
         <!-- WHEN LOGGED OUT -->
         <a href="/login" style="color:white; margin-right:15px;">Login</a>
         <a href="/register" style="color:white;">Register</a>
     {{/if}}
 </nav>
+<a href="/products">Products</a>
