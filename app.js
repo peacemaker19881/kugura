@@ -160,14 +160,14 @@ app.get("/register", (req, res) => {
 
 app.post("/register", async (req, res) => {
     try {
-        const { username, email, phone, password, role } = req.body;
-const allowedRoles = ["admin", "seller", "customer"];
+        const { username, email, phone, role, password } = req.body;
+        const allowedRoles = ["admin", "seller", "customer"];
         if (!allowedRoles.includes(role)) {
             return res.status(400).json({ message: "Invalid role selected" });
         }
-const hashedPassword = await bcrypt.hash(password, 10);
- const sql = "INSERT INTO users(username, email, phone, password, role) VALUES(?,?,?,?,?)";
-        db.query(sql, [username, email, phone, hashedPassword, role], (err) => {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const sql = "INSERT INTO users(username, email, phone, role, password) VALUES(?,?,?,?,?)";
+        db.query(sql, [username, email, phone, role, hashedPassword], (err) => {
             if (err) return res.status(500).json({ error: err });
             return res.status(201).json({ message: "User registered successfully" });
         });
@@ -421,11 +421,11 @@ app.post("/cart/add/:id", isCustomer, (req, res) => {
                 } else {
                     // Insert new row
                     const insertSQL =
-                        "INSERT INTO cart (customer_id, productid, quantity, price, total) VALUES (?, ?, ?, ?, ?)";
+                        "INSERT INTO cart (customer_id, seller_id, productid, quantity, price, total) VALUES (?, ?, ?, ?, ?)";
 
                     db.query(
                         insertSQL,
-                        [customer_id, productid, quantity, price, total],
+                        [customer_id, seller_id, productid, quantity, price, total],
                         () => {
                             return res.redirect("/cart");
                         }
@@ -634,6 +634,188 @@ app.post('/momo/notifications', (req, res) => {
   // Example: find reference id within req.body
   // Then update your DB: status = 'successful' or 'failed'
   res.status(200).send('OK');
+});
+// admin sold products already in cart table only
+
+app.get("/admin/sold-products", isAdmin, (req, res) => {
+    let { from_date, to_date, page } = req.query;
+    page = parseInt(page) || 1;
+    const limit = 10;
+    const offset = (page - 1) * limit;
+
+    let sql = `
+        SELECT cart.*, products.title, products.image_url, products.seller_id, cart.created_at
+        FROM cart 
+        JOIN products ON cart.productid = products.productid
+    `;
+    const params = [];
+
+    if (from_date && to_date) {
+        sql += " WHERE cart.created_at BETWEEN ? AND ?";
+        params.push(from_date + " 00:00:00", to_date + " 23:59:59");
+    }
+
+    sql += " ORDER BY cart.created_at DESC LIMIT ? OFFSET ?";
+    params.push(limit, offset);
+
+    db.query(sql, params, (err, data) => {
+        if (err) throw err;
+
+        let countSql = "SELECT COUNT(*) as total FROM cart";
+        const countParams = [];
+
+        if (from_date && to_date) {
+            countSql += " WHERE created_at BETWEEN ? AND ?";
+            countParams.push(from_date + " 00:00:00", to_date + " 23:59:59");
+        }
+
+        db.query(countSql, countParams, (err2, countResult) => {
+            if (err2) throw err2;
+
+            const totalPages = Math.ceil(countResult[0].total / limit);
+
+            res.render("admin/sold-products", {
+                sold: data,
+                currentPage: page,
+                totalPages,
+                from_date,
+                to_date
+            });
+        });
+    });
+});
+
+
+
+// register helper file in sold product hbs file 
+hbs.registerHelper("increment", function(value) {
+    return parseInt(value) + 1;
+});
+
+hbs.registerHelper("decrement", function(value) {
+    return parseInt(value) - 1;
+});
+
+hbs.registerHelper("gt", function(a, b) {
+    return a > b;
+});
+
+hbs.registerHelper("lt", function(a, b) {
+    return a < b;
+});
+
+
+// seller viewing sold product in cart table
+
+app.get("/seller/sold-products", isSeller, (req, res) => {
+    const sellerId = req.session.user.id;
+
+    const sql = `
+        SELECT cart.*, products.title, products.image_url 
+        FROM cart 
+        JOIN products ON cart.productid = products.productid
+        WHERE products.seller_id = ?
+    `;
+
+    db.query(sql, [sellerId], (err, data) => {
+        if (err) throw err;
+
+        res.render("seller/sold-products", { sold: data });
+    });
+});
+
+
+
+// calculating the total price in report of sold product
+hbs.registerHelper("multiply", function(a, b) {
+    return a * b;
+});
+
+// download the pdf file as report in admin and seller only
+
+const PDFDocument = require("pdfkit");
+const fs = require("fs");
+
+app.get("/admin/sold-products/pdf", isAdmin, (req, res) => {
+    const { from_date, to_date } = req.query;
+
+    let sql = `
+        SELECT cart.*, products.title, products.image_url, products.seller_id
+        FROM cart
+        JOIN products products ON cart.productid = products.productid
+    `;
+    const params = [];
+
+    if (from_date && to_date) {
+        sql += " WHERE cart.created_at BETWEEN ? AND ?";
+        params.push(from_date + " 00:00:00", to_date + " 23:59:59");
+    }
+
+    db.query(sql, params, (err, data) => {
+        if (err) throw err;
+
+        const doc = new PDFDocument();
+        const filename = "sold-products-report.pdf";
+
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Disposition", `attachment; filename=${filename}`);
+
+        doc.pipe(res);
+
+        // Add Logo
+        const logoPath = path.join(__dirname, "public/images/logo.png");
+        doc.image(logoPath, 50, 20, { width: 100 });
+        doc.moveDown(4);
+
+        // Report Title
+        doc
+            .fontSize(18)
+            .font("Times-BoldItalic")
+            .text("List of Bought Products", { align: "center" })
+            .moveDown();
+
+        // Company Info
+        doc
+            .fontSize(12)
+            .font("Times-Roman")
+            .text("Company Name: Valens Online Store")
+            .text("Phone: +250 788 000 111")
+            .text("Email: info@valensstore.rw")
+            .moveDown(2);
+
+        // Table
+        doc.font("Times-Bold");
+        doc.text("Product", 50);
+        doc.text("Qty", 250);
+        doc.text("Price", 300);
+        doc.text("Total", 370);
+        doc.moveDown();
+        doc.font("Times-Roman");
+
+        let grandTotal = 0;
+
+        data.forEach(item => {
+            const total = item.price * item.quantity;
+            grandTotal += total;
+
+            doc.text(item.title, 50);
+            doc.text(item.quantity.toString(), 250);
+            doc.text(item.price.toString(), 300);
+            doc.text(total.toString(), 370);
+            doc.moveDown();
+        });
+
+        const TVA = grandTotal * 0.15;
+        const totalWithTVA = grandTotal - TVA;
+
+        doc.moveDown();
+        doc.font("Times-Bold");
+        doc.text(`Total Without TVA: ${grandTotal} RWF`, { align: "right" });
+        doc.text(`TVA (15%): ${TVA} RWF`, { align: "right" });
+        doc.text(`Total With TVA: ${totalWithTVA} RWF`, { align: "right" });
+
+        doc.end();
+    });
 });
 
 

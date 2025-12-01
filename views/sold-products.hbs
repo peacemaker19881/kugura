@@ -1,0 +1,24 @@
+<h2>Sold Products</h2>
+
+<table border="1" width="100%">
+    <tr>
+        <th>Product</th>
+        <th>Image</th>
+        <th>Qty</th>
+        <th>Price</th>
+        <th>Total</th>
+    </tr>
+
+    {{#each sold}}
+    <tr>
+        <td>{{title}}</td>
+        <td><img src="{{image_url}}" width="80"></td>
+        <td>{{quantity}}</td>
+        <td>{{price}}</td>
+        <td>{{multiply price quantity}}</td>
+    </tr>
+    {{/each}}
+</table>
+
+<br>
+<a href="/admin/sold-products/pdf" class="btn btn-primary">Download PDF</a>

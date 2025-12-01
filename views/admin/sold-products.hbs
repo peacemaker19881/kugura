@@ -1,0 +1,42 @@
+<h2>Sold Products</h2>
+<h3>Filter Sold Products</h3>
+<form action="/admin/sold-products" method="get">
+    <label>From:</label>
+    <input type="date" name="from_date" required>
+    <label>To:</label>
+    <input type="date" name="to_date" required>
+    <button type="submit">Filter</button>
+</form>
+<table border="1" width="100%">
+    <tr>
+        <th>Product</th>
+        <th>Image</th>
+        <th>Qty</th>
+        <th>Price</th>
+        <th>Total</th>
+    </tr>
+
+    {{#each sold}}
+    <tr>
+        <td>{{title}}</td>
+        <td><img src="{{image_url}}" width="80"></td>
+        <td>{{quantity}}</td>
+        <td>{{price}}</td>
+        <td>{{multiply price quantity}}</td>
+    </tr>
+    {{/each}}
+</table>
+<div class="pagination">
+    {{#if (gt currentPage 1)}}
+        <a href="?page={{decrement currentPage}}&from_date={{from_date}}&to_date={{to_date}}">Previous</a>
+    {{/if}}
+
+    Page {{currentPage}} of {{totalPages}}
+
+    {{#if (lt currentPage totalPages)}}
+        <a href="?page={{increment currentPage}}&from_date={{from_date}}&to_date={{to_date}}">Next</a>
+    {{/if}}
+</div>
+
+<br>
+<a href="/admin/sold-products/pdf" class="btn btn-primary">Download PDF</a>
