@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 22, 2025 at 01:28 PM
+-- Generation Time: Dec 01, 2025 at 11:32 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.1.25
 
@@ -24,6 +24,46 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `cart`
+--
+
+CREATE TABLE `cart` (
+  `id` int(11) NOT NULL,
+  `customer_id` int(11) NOT NULL,
+  `productid` varchar(50) NOT NULL,
+  `quantity` int(11) NOT NULL DEFAULT 1,
+  `price` decimal(10,2) NOT NULL,
+  `total` decimal(10,2) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `cart`
+--
+
+INSERT INTO `cart` (`id`, `customer_id`, `productid`, `quantity`, `price`, `total`, `created_at`) VALUES
+(1, 11, '3', 1, 250000.00, 250000.00, '2025-12-01 09:51:45'),
+(2, 11, '4', 1, 260000.00, 260000.00, '2025-12-01 09:52:44');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `payments`
+--
+
+CREATE TABLE `payments` (
+  `id` int(11) NOT NULL,
+  `customer_id` int(11) DEFAULT NULL,
+  `reference_id` varchar(100) DEFAULT NULL,
+  `external_id` varchar(100) DEFAULT NULL,
+  `amount` decimal(12,2) DEFAULT NULL,
+  `status` varchar(30) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `products`
 --
 
@@ -35,7 +75,7 @@ CREATE TABLE `products` (
   `price` decimal(12,2) NOT NULL,
   `quantity` int(11) DEFAULT 1,
   `image_url` varchar(500) DEFAULT NULL,
-  `approved` tinyint(1) DEFAULT 0,
+  `status` varchar(8) DEFAULT '0',
   `is_sold` tinyint(1) DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
@@ -44,8 +84,10 @@ CREATE TABLE `products` (
 -- Dumping data for table `products`
 --
 
-INSERT INTO `products` (`productid`, `seller_id`, `title`, `description`, `price`, `quantity`, `image_url`, `approved`, `is_sold`, `created_at`) VALUES
-(1, 2, 'Computer', 'Computer 240 Hard Disk 8GB RAM 1.64 Processor', 240000.00, 12, NULL, 0, 0, '2025-11-20 10:34:55');
+INSERT INTO `products` (`productid`, `seller_id`, `title`, `description`, `price`, `quantity`, `image_url`, `status`, `is_sold`, `created_at`) VALUES
+(3, 1, 'Laptop', 'This laptop is ready to be on market', 250000.00, 2, '/uploads/1764177753164.jfif', 'approved', 0, '2025-11-26 17:22:33'),
+(4, 1, 'Laptop', 'This laptop is ready to be on market', 260000.00, 2, '/uploads/1764177791560.jfif', 'approved', 0, '2025-11-26 17:23:11'),
+(5, 2, 'Mudasobwa', 'Iyi computer iragurishwa ku mafaranga make cyane', 200000.00, 2, '/uploads/1764180616368.jfif', 'approved', 0, '2025-11-26 18:10:16');
 
 -- --------------------------------------------------------
 
@@ -105,28 +147,47 @@ CREATE TABLE `transactions` (
 
 CREATE TABLE `users` (
   `id` int(11) NOT NULL,
-  `name` varchar(150) NOT NULL,
+  `username` varchar(150) NOT NULL,
   `email` varchar(255) NOT NULL,
   `phone` varchar(32) DEFAULT NULL,
-  `password_hash` varchar(255) NOT NULL,
-  `role` enum('admin','seller','customer') NOT NULL DEFAULT 'customer',
-  `mobile_money_account` varchar(100) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `password` varchar(255) NOT NULL,
+  `role` enum('admin','seller','customer') DEFAULT 'seller',
+  `profile_image` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `name`, `email`, `phone`, `password_hash`, `role`, `mobile_money_account`, `created_at`, `updated_at`) VALUES
-(1, 'Kubwayo', 'kubwa@gmail.com', '250785611427', 'kubwa', 'customer', '250785611427', '2025-11-20 10:30:32', '2025-11-21 10:30:32'),
-(2, 'Habimana', 'habimana@gmail.com', '250788860155', 'habi', 'admin', '250788860155', '2025-11-03 10:32:18', '2025-11-21 10:32:18'),
-(3, 'sekabanza', 'jeandelapaix2013@gmail.com', '250785549300', 'seka', 'seller', '250785549300', '2025-11-13 10:32:18', '2025-11-21 10:32:18');
+INSERT INTO `users` (`id`, `username`, `email`, `phone`, `password`, `role`, `profile_image`) VALUES
+(1, 'Kubwayo', 'kubwa@gmail.com', '250785611427', 'kubwa', '', NULL),
+(2, 'Habimana', 'habimana@gmail.com', '250788860155', 'habi', 'admin', NULL),
+(3, 'sekabanza', 'jeandelapaix2013@gmail.com', '250785549300', 'seka', 'seller', NULL),
+(5, 'juru', 'juru@gmail.com', '0785611427', '$2b$10$SGOBpKgQe0qH3OszhrdtIuAx0YWf/q6D.px1Q61V7XMOki7NyxwXa', 'admin', NULL),
+(6, 'yes', 'yes@gmail.com', '0788860155', '$2b$10$5Ztccs1dgnjW1B7dhUm3vuHSxad/4LDWQ9xHaENc6UrZNp2gnqXqu', 'admin', '/uploads/1764441250177.jfif'),
+(9, 'jojo', 'jojo@gmail.com', '0788860156', '$2b$10$puCmYc99.pOKhKhM5X/uhOxMyRh5XRD4PtMdeDx35RuMfWsWJddhu', 'admin', NULL),
+(10, 'joji', 'joji@gmail.com', '0788860159', '$2b$10$H1wjEeV4b1SvJkQJ0yUTG.jBCJAl0P3lbPhuvj.Fejb2gaYCgO5jO', 'seller', '/uploads/1764446055103.jfif'),
+(11, 'kiki', 'kiki@gmail.com', '0785611428', '$2b$10$JIdydNzXLUjy.YZ4QDzW../F6GHJABCzOtTzivEUwbYwyJ3km5jH6', 'customer', '/uploads/1764427080331.jfif'),
+(12, 'mimi', 'mimi@gmail.com', '0785611429', '$2b$10$LiVtCKbQn2j9BRQeaGt2ZeZ4yYqWvZE4LBnqeM7cqGoyWoo8Ep5j2', 'admin', NULL),
+(13, 'bibi', 'bibi@gmail.com', '0785611420', '$2b$10$FlDcHQaCGrswySQ2I.FmDuK9st.iL5r/F..TbxBnG3XoYdVcB.cCG', 'admin', NULL),
+(16, 'bibic', 'bibic@gmail.com', '0785611423', '$2b$10$26xc0./foHUXRHkHXV84jOLqUwrqMK58m3I9y7bL9e9lowwn74fcC', 'admin', NULL),
+(18, 'bibica', 'bibica@gmail.com', '0785611421', '$2b$10$nPokr/7R80cUhmzkFDNrpuKCH8SDF6LF6rIZMqt.y9vLB5PvxSfrS', 'admin', NULL);
 
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `cart`
+--
+ALTER TABLE `cart`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `payments`
+--
+ALTER TABLE `payments`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `products`
@@ -170,10 +231,22 @@ ALTER TABLE `users`
 --
 
 --
+-- AUTO_INCREMENT for table `cart`
+--
+ALTER TABLE `cart`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `payments`
+--
+ALTER TABLE `payments`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `productid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `productid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `product_out`
@@ -191,7 +264,7 @@ ALTER TABLE `transactions`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- Constraints for dumped tables
